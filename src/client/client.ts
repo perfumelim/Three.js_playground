@@ -12,22 +12,48 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.z = 2;
+camera.position.x = 4;
+camera.position.y = 4;
+camera.position.z = 4;
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(8, 0, 0);
 
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial({
-  color: 0x00ff00,
-  wireframe: true,
-});
+const light1 = new THREE.PointLight();
+light1.position.set(10, 10, 10);
+scene.add(light1);
 
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+const light2 = new THREE.PointLight();
+light2.position.set(-10, 10, 10);
+scene.add(light2);
+
+const object1 = new THREE.Mesh(
+  new THREE.SphereBufferGeometry(),
+  new THREE.MeshPhongMaterial({ color: 0xff0000 })
+);
+object1.position.set(4, 0, 0);
+scene.add(object1);
+object1.add(new THREE.AxesHelper(5));
+
+const object2 = new THREE.Mesh(
+  new THREE.SphereBufferGeometry(),
+  new THREE.MeshPhongMaterial({ color: 0x00ff00 })
+);
+object2.position.set(4, 0, 0);
+object1.add(object2);
+object2.add(new THREE.AxesHelper(5));
+
+const object3 = new THREE.Mesh(
+  new THREE.SphereBufferGeometry(),
+  new THREE.MeshPhongMaterial({ color: 0x0000ff })
+);
+object3.position.set(4, 0, 0);
+object2.add(object3);
+object3.add(new THREE.AxesHelper(5));
 
 window.addEventListener("resize", onWindowResize, false);
 function onWindowResize() {
@@ -35,48 +61,68 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   render();
-  // 위 부분 render는 optional. 왜냐하면 아래 animate에서
-  // 60fps로 계속 re-render하고 있기 때문에
-  // 굳이 쓰지 않아도 resize 이벤트에서도 동일하게 동작한다.
 }
+
+const gui = new GUI();
+const object1Folder = gui.addFolder("Object1");
+object1Folder.add(object1.position, "x", 0, 10, 0.01).name("X Position");
+object1Folder
+  .add(object1.rotation, "x", 0, Math.PI * 2, 0.01)
+  .name("X Rotation");
+object1Folder.add(object1.scale, "x", 0, 2, 0.01).name("X Scale");
+object1Folder.open();
+const object2Folder = gui.addFolder("Object2");
+object2Folder.add(object2.position, "x", 0, 10, 0.01).name("X Position");
+object2Folder
+  .add(object2.rotation, "x", 0, Math.PI * 2, 0.01)
+  .name("X Rotation");
+object2Folder.add(object2.scale, "x", 0, 2, 0.01).name("X Scale");
+object2Folder.open();
+const object3Folder = gui.addFolder("Object3");
+object3Folder.add(object3.position, "x", 0, 10, 0.01).name("X Position");
+object3Folder
+  .add(object3.rotation, "x", 0, Math.PI * 2, 0.01)
+  .name("X Rotation");
+object3Folder.add(object3.scale, "x", 0, 2, 0.01).name("X Scale");
+object3Folder.open();
 
 const stats = Stats();
 document.body.appendChild(stats.dom);
 
-const gui = new GUI();
-const cubeFolder = gui.addFolder("Cube");
-const cubeRotationFolder = cubeFolder.addFolder("Rotation");
-cubeRotationFolder.add(cube.rotation, "x", 0, Math.PI * 2);
-cubeRotationFolder.add(cube.rotation, "y", 0, Math.PI * 2);
-cubeRotationFolder.add(cube.rotation, "z", 0, Math.PI * 2);
-cubeFolder.open();
-cubeRotationFolder.open();
-const cubePositionFolder = cubeFolder.addFolder("Position");
-cubePositionFolder.add(cube.position, "x", -10, 10, 2);
-cubePositionFolder.add(cube.position, "y", -10, 10, 2);
-cubePositionFolder.add(cube.position, "z", -10, 10, 2);
-cubeFolder.open();
-cubeRotationFolder.open();
-const cubeScaleFolder = cubeFolder.addFolder("Scale");
-cubeScaleFolder.add(cube.scale, "x", -5, 5);
-cubeScaleFolder.add(cube.scale, "y", -5, 5);
-cubeScaleFolder.add(cube.scale, "z", -5, 5);
-cubeFolder.add(cube, "visible");
-cubeFolder.open();
-cubeRotationFolder.open();
-
-const cameraFolder = gui.addFolder("Camera");
-cameraFolder.add(camera.position, "z", 0, 10);
-cameraFolder.open();
+const debug = document.getElementById("debug1") as HTMLDivElement;
 
 function animate() {
   requestAnimationFrame(animate);
-  // stats.begin();
-  // cube.rotation.x += 0.01;
-  // cube.rotation.y += 0.01;
-  // stats.end();
+  controls.update();
   render();
-
+  const object1WorldPosition = new THREE.Vector3();
+  object1.getWorldPosition(object1WorldPosition);
+  const object2WorldPosition = new THREE.Vector3();
+  object2.getWorldPosition(object2WorldPosition);
+  const object3WorldPosition = new THREE.Vector3();
+  object3.getWorldPosition(object3WorldPosition);
+  debug.innerText =
+    "Red\n" +
+    "Local Pos X : " +
+    object1.position.x.toFixed(2) +
+    "\n" +
+    "World Pos X : " +
+    object1WorldPosition.x.toFixed(2) +
+    "\n" +
+    "\nGreen\n" +
+    "Local Pos X : " +
+    object2.position.x.toFixed(2) +
+    "\n" +
+    "World Pos X : " +
+    object2WorldPosition.x.toFixed(2) +
+    "\n" +
+    "\nBlue\n" +
+    "Local Pos X : " +
+    object3.position.x.toFixed(2) +
+    "\n" +
+    "World Pos X : " +
+    object3WorldPosition.x.toFixed(2) +
+    "\n";
   stats.update();
 }
 
@@ -85,8 +131,3 @@ function render() {
 }
 
 animate();
-// render();
-// 위에처럼 animate()에서 render를 하는 것도 좋지만
-// 어떤 성능상의 이슈를 위해 무언가가 change될 때 딱 1번만 render하고 싶다면
-// animate()에서 render()를 지우고
-// 여기서 렌더를 호출하면 된다.
