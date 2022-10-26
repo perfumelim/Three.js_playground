@@ -6,9 +6,9 @@ import { GUI } from "dat.gui";
 const scene = new THREE.Scene();
 scene.add(new THREE.AxesHelper(5));
 
-// const light = new THREE.PointLight(0xffffff, 2);
-// light.position.set(10, 10, 10);
-// scene.add(light);
+const light = new THREE.PointLight(0xffffff, 1);
+light.position.set(10, 10, 10);
+scene.add(light);
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -30,23 +30,19 @@ const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0);
 const planeGeometry = new THREE.PlaneGeometry();
 const torusKnotGeometry = new THREE.TorusKnotGeometry();
 
-const material = new THREE.MeshMatcapMaterial();
+const threeTone = new THREE.TextureLoader().load("img/threeTone.jpg");
+// threeTone.minFilter = THREE.NearestFilter;
+// threeTone.magFilter = THREE.NearestFilter;
 
-// const texture = new THREE.TextureLoader().load("img/grid.png")
-// material.map = texture
-// const envTexture = new THREE.CubeTextureLoader().load(["img/px_50.png", "img/nx_50.png", "img/py_50.png", "img/ny_50.png", "img/pz_50.png", "img/nz_50.png"])
-// //envTexture.mapping = THREE.CubeReflectionMapping
-// envTexture.mapping = THREE.CubeRefractionMapping
-// material.envMap = envTexture
+const fourTone = new THREE.TextureLoader().load("img/fourTone.jpg");
+fourTone.minFilter = THREE.NearestFilter;
+fourTone.magFilter = THREE.NearestFilter;
 
-// const matcapTexture = new THREE.TextureLoader().load("img/matcap-opal.png");
-const matcapTexture = new THREE.TextureLoader().load("img/matcap-crystal.png");
-//const matcapTexture = new THREE.TextureLoader().load("img/matcap-gold.png")
-// const matcapTexture = new THREE.TextureLoader().load(
-//   "img/matcap-red-light.png"
-// );
-//const matcapTexture = new THREE.TextureLoader().load("img/matcap-green-yellow-pink.png")
-material.matcap = matcapTexture;
+const fiveTone = new THREE.TextureLoader().load("img/fiveTone.jpg");
+fiveTone.minFilter = THREE.NearestFilter;
+fiveTone.magFilter = THREE.NearestFilter;
+
+const material: THREE.MeshToonMaterial = new THREE.MeshToonMaterial();
 
 const cube = new THREE.Mesh(boxGeometry, material);
 cube.position.x = 5;
@@ -85,9 +81,30 @@ const options = {
     BackSide: THREE.BackSide,
     DoubleSide: THREE.DoubleSide,
   },
+  gradientMap: {
+    Default: null,
+    threeTone: "threeTone",
+    fourTone: "fourTone",
+    fiveTone: "fiveTone",
+  },
 };
 
 const gui = new GUI();
+
+const data = {
+  lightColor: light.color.getHex(),
+  color: material.color.getHex(),
+  gradientMap: "threeTone",
+};
+
+material.gradientMap = threeTone;
+
+const lightFolder = gui.addFolder("THREE.Light");
+lightFolder.addColor(data, "lightColor").onChange(() => {
+  light.color.setHex(Number(data.lightColor.toString().replace("#", "0x")));
+});
+lightFolder.add(light, "intensity", 0, 4);
+
 const materialFolder = gui.addFolder("THREE.Material");
 materialFolder
   .add(material, "transparent")
@@ -104,21 +121,21 @@ materialFolder
   .onChange(() => updateMaterial());
 materialFolder.open();
 
-const data = {
-  color: material.color.getHex(),
-};
-
-const meshMatcapMaterialFolder = gui.addFolder("THREE.MeshMatcapMaterial");
-meshMatcapMaterialFolder.addColor(data, "color").onChange(() => {
+const meshToonMaterialFolder = gui.addFolder("THREE.MeshToonMaterial");
+meshToonMaterialFolder.addColor(data, "color").onChange(() => {
   material.color.setHex(Number(data.color.toString().replace("#", "0x")));
 });
-meshMatcapMaterialFolder
-  .add(material, "flatShading")
+
+//shininess, specular and flatShading no longer supported in MeshToonMaterial
+
+meshToonMaterialFolder
+  .add(data, "gradientMap", options.gradientMap)
   .onChange(() => updateMaterial());
-meshMatcapMaterialFolder.open();
+// meshToonMaterialFolder.open();
 
 function updateMaterial() {
   material.side = Number(material.side);
+  material.gradientMap = eval(data.gradientMap as string);
   material.needsUpdate = true;
 }
 
