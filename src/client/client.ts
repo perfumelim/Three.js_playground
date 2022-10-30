@@ -70,9 +70,7 @@ const options = {
 const gui = new GUI();
 
 const materialFolder = gui.addFolder("THREE.Material");
-materialFolder
-  .add(material, "transparent")
-  .onChange(() => (material.needsUpdate = true));
+materialFolder.add(material, "transparent");
 materialFolder.add(material, "opacity", 0, 1, 0.01);
 materialFolder.add(material, "depthTest");
 materialFolder.add(material, "depthWrite");
@@ -146,6 +144,14 @@ function regeneratePlaneGeometry() {
   plane.geometry.dispose();
   plane.geometry = newGeometry;
 }
+
+const textureFolder = gui.addFolder("Texture");
+textureFolder.add(texture.repeat, "x", 0.1, 1, 0.1);
+textureFolder.add(texture.repeat, "y", 0.1, 1, 0.1);
+textureFolder.add(texture.center, "x", 0, 1, 0.001);
+textureFolder.add(texture.center, "y", 0, 1, 0.001);
+
+textureFolder.open();
 
 function animate() {
   requestAnimationFrame(animate);
